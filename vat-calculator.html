@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор НДС</title>
+    <script src="https://art009bas.github.io/reestr/tailwind.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .calculator-card {
+            transition: all 0.3s ease;
+        }
+        
+        .calculator-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .select-dropdown {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+        }
+        
+        .history-item {
+            border-left: 4px solid #3b82f6;
+            transition: all 0.2s;
+        }
+        
+        .history-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .floating-btn {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .floating-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Шапка приложения -->
+        <header class="mb-10">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-calculator text-blue-500 mr-3"></i>
+                    Калькулятор НДС
+                </h1>
+            </div>
+            <p class="text-gray-500 mt-2">Расчет налога на добавленную стоимость</p>
+            
+            <!-- Навигация -->
+            <div class="mt-6 flex space-x-4">
+                <a href="index.html" class="px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-chart-line mr-2"></i>Конверсия
+                </a>
+                <a href="vat-calculator.html" class="px-4 py-2 rounded-lg bg-blue-500 text-white transition-colors">
+                    <i class="fas fa-percent mr-2"></i>НДС
+                </a>
+            </div>
+        </header>
+        
+        <main>
+            <!-- Калькулятор НДС -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8 fade-in">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-calculator text-blue-500 mr-3"></i>
+                        Калькулятор НДС
+                    </h2>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 mb-2">Действие</label>
+                            <select id="action-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent select-dropdown">
+                                <option value="add">Начислить НДС</option>
+                                <option value="subtract">Вычесть НДС</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-2">Ставка НДС (%)</label>
+                            <input type="number" id="vat-rate-input" value="20" min="0" max="100" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Сумма</label>
+                        <input type="number" id="amount-input" placeholder="0.00" min="0" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div class="flex justify-center mb-6">
+                        <button id="calculate-btn" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center">
+                            <i class="fas fa-calculator mr-2"></i> Рассчитать
+                        </button>
+                    </div>
+                    
+                    <div id="result-container" class="hidden bg-blue-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-4 text-center">Результат расчета</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-white p-4 rounded-lg">
+                                <p class="text-sm text-gray-600 mb-1">Сумма НДС</p>
+                                <p id="vat-amount-result" class="text-xl font-semibold text-blue-600"></p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg">
+                                <p class="text-sm text-gray-600 mb-1">Итоговая сумма</p>
+                                <p id="total-amount-result" class="text-xl font-semibold text-green-600"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button id="copy-result-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                                <i class="fas fa-copy mr-2"></i> Копировать результат
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- История расчетов -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden fade-in">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-history text-purple-500 mr-3"></i>
+                            История расчетов
+                        </h2>
+                        <button id="clear-history-btn" class="px-3 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 text-sm">
+                            <i class="fas fa-trash-alt mr-1"></i> Очистить историю
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div id="history-container">
+                        <div class="text-center py-10 text-gray-400" id="no-history-message">
+                            <i class="fas fa-clock text-4xl mb-3"></i>
+                            <p>История расчетов пуста</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="mt-16 text-center text-gray-500 text-sm pb-8">
+            <p>© 2025 Калькулятор НДС. Все права защищены.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Состояние приложения
+        const state = {
+            calculations: []
+        };
+        
+        // Элементы DOM
+        const elements = {
+            actionSelect: document.getElementById('action-select'),
+            vatRateInput: document.getElementById('vat-rate-input'),
+            amountInput: document.getElementById('amount-input'),
+            calculateBtn: document.getElementById('calculate-btn'),
+            resultContainer: document.getElementById('result-container'),
+            vatAmountResult: document.getElementById('vat-amount-result'),
+            totalAmountResult: document.getElementById('total-amount-result'),
+            copyResultBtn: document.getElementById('copy-result-btn'),
+            historyContainer: document.getElementById('history-container'),
+            noHistoryMessage: document.getElementById('no-history-message'),
+            clearHistoryBtn: document.getElementById('clear-history-btn')
+        };
+        
+        // Инициализация приложения
+        function init() {
+            // Загружаем данные из localStorage
+            loadData();
+            
+            // Обработчики событий
+            setupEventListeners();
+            
+            // Рендерим историю
+            renderHistory();
+        }
+        
+        // Загрузка данных из localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('vatCalculator');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                state.calculations = data.calculations || [];
+            }
+        }
+        
+        // Сохранение данных в localStorage
+        function saveData() {
+            const data = {
+                calculations: state.calculations
+            };
+            localStorage.setItem('vatCalculator', JSON.stringify(data));
+        }
+        
+        // Расчет НДС
+        function calculateVAT() {
+            const action = elements.actionSelect.value;
+            const vatRate = parseFloat(elements.vatRateInput.value);
+            const amount = parseFloat(elements.amountInput.value);
+            
+            // Валидация
+            if (isNaN(vatRate) || vatRate <= 0) {
+                alert('Пожалуйста, введите корректную ставку НДС');
+                return;
+            }
+            
+            if (isNaN(amount) || amount <= 0) {
+                alert('Пожалуйста, введите корректную сумму');
+                return;
+            }
+            
+            let vatAmount, totalAmount;
+            
+            if (action === 'add') {
+                // Начислить НДС
+                vatAmount = amount * (vatRate / 100);
+                totalAmount = amount + vatAmount;
+            } else {
+                // Вычесть НДС
+                vatAmount = amount * (vatRate / (100 + vatRate));
+                totalAmount = amount - vatAmount;
+            }
+            
+            // Форматирование результата
+            const formatter = new Intl.NumberFormat('ru-RU', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            const formattedVAT = formatter.format(vatAmount);
+            const formattedTotal = formatter.format(totalAmount);
+            
+            // Показываем результат
+            elements.vatAmountResult.textContent = `${formattedVAT} ₽`;
+            elements.totalAmountResult.textContent = `${formattedTotal} ₽`;
+            elements.resultContainer.classList.remove('hidden');
+            
+            // Сохраняем в историю
+            const calculation = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                action: action,
+                vatRate: vatRate,
+                amount: amount,
+                vatAmount: vatAmount,
+                totalAmount: totalAmount
+            };
+            
+            state.calculations.unshift(calculation);
+            saveData();
+            renderHistory();
+        }
+        
+        // Рендер истории расчетов
+        function renderHistory() {
+            if (state.calculations.length === 0) {
+                elements.noHistoryMessage.classList.remove('hidden');
+                elements.historyContainer.innerHTML = '';
+            } else {
+                elements.noHistoryMessage.classList.add('hidden');
+                
+                let historyHTML = '';
+                state.calculations.forEach(calculation => {
+                    const date = new Date(calculation.date);
+                    const dateString = date.toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    const formatter = new Intl.NumberFormat('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    
+                    const actionText = calculation.action === 'add' ? 'Начисление' : 'Вычитание';
+                    const formattedVAT = formatter.format(calculation.vatAmount);
+                    const formattedTotal = formatter.format(calculation.totalAmount);
+                    const formattedAmount = formatter.format(calculation.amount);
+                    
+                    historyHTML += `
+                        <div class="history-item bg-white p-4 rounded-lg mb-3 fade-in">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-semibold text-gray-800">${actionText} НДС ${calculation.vatRate}%</div>
+                                    <div class="text-sm text-gray-500 mt-1">НДС: ${formattedVAT} ₽ | Итого: ${formattedTotal} ₽</div>
+                                    <div class="text-sm text-gray-500 mt-1">Исходная сумма: ${formattedAmount} ₽</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">${dateString}</div>
+                                    <button class="delete-calculation text-red-400 hover:text-red-600 mt-1" data-id="${calculation.id}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                elements.historyContainer.innerHTML = historyHTML;
+                
+                // Добавляем обработчики для кнопок удаления
+                document.querySelectorAll('.delete-calculation').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const calculationId = parseInt(this.getAttribute('data-id'));
+                        deleteCalculation(calculationId);
+                    });
+                });
+            }
+        }
+        
+        // Удаление расчета из истории
+        function deleteCalculation(id) {
+            state.calculations = state.calculations.filter(c => c.id !== id);
+            saveData();
+            renderHistory();
+        }
+        
+        // Очистка истории
+        function clearHistory() {
+            if (confirm('Вы уверены, что хотите очистить всю историю расчетов? Это действие нельзя отменить.')) {
+                state.calculations = [];
+                saveData();
+                renderHistory();
+            }
+        }
+        
+        // Копирование результата в буфер обмена
+        function copyResultToClipboard() {
+            const vatText = elements.vatAmountResult.textContent;
+            const totalText = elements.totalAmountResult.textContent;
+            const resultText = `НДС: ${vatText}, Итоговая сумма: ${totalText}`;
+            
+            navigator.clipboard.writeText(resultText).then(() => {
+                // Временно меняем текст кнопки
+                const originalText = elements.copyResultBtn.innerHTML;
+                elements.copyResultBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Скопировано!';
+                
+                setTimeout(() => {
+                    elements.copyResultBtn.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Ошибка копирования: ', err);
+                alert('Не удалось скопировать результат');
+            });
+        }
+        
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Расчет НДС
+            elements.calculateBtn.addEventListener('click', calculateVAT);
+            
+            // Расчет по нажатию Enter в поле суммы
+            elements.amountInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    calculateVAT();
+                }
+            });
+            
+            // Копирование результата
+            elements.copyResultBtn.addEventListener('click', copyResultToClipboard);
+            
+            // Очистка истории
+            elements.clearHistoryBtn.addEventListener('click', clearHistory);
+        }
+        
+        // Инициализация приложения при загрузке страницы
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
